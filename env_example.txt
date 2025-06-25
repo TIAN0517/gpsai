@@ -1,0 +1,224 @@
+# 智慧瓦斯 AI 管理系統 - 環境變數配置範例
+# 複製此檔案為 .env 並填入實際值
+
+# ===== 企業品牌設定 =====
+BRAND_NAME=智慧瓦斯AI管理系統
+BRAND_COLOR_PRIMARY=#2676ff
+BRAND_COLOR_SECONDARY=#ff9800
+DEVELOPER=Jy技術團隊
+
+# ===== AI API 金鑰池管理 =====
+# Gemini API (多KEY用逗號分隔)
+GEMINI_API_KEYS=AIzaSyD7bIKgCLX4A6bn8uIoNQQPon1PRCXYMA8
+
+# OpenAI API Keys (多KEY輪流備援)
+OPENAI_API_KEY_1=
+OPENAI_API_KEY_2=
+OPENAI_API_KEY_3=
+OPENAI_API_KEY_4=
+OPENAI_API_KEY_5=
+
+# DeepSeek API Keys (多KEY輪流備援)
+DEEPSEEK_API_KEY_1=
+DEEPSEEK_API_KEY_2=
+DEEPSEEK_API_KEY_3=
+DEEPSEEK_API_KEY_4=
+DEEPSEEK_API_KEY_5=
+
+# API 端點配置
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent
+OPENAI_API_URL=https://api.openai.com/v1/chat/completions
+DEEPSEEK_API_URL=http://localhost:11434/api/generate
+
+# ===== 本地Ollama配置 =====
+OLLAMA_URL=http://localhost:11434
+
+# ===== 快取配置 =====
+CACHE_ENABLED=true
+CACHE_TTL=3600
+CACHE_MAX_SIZE=1000
+
+# ===== 配額管理 =====
+QUOTA_ENABLED=true
+QUOTA_HOURLY=100
+QUOTA_DAILY=1000
+QUOTA_MONTHLY=10000
+QUOTA_COOLDOWN=60
+
+# ===== 管理員帳號 =====
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+
+# ===== 系統配置 =====
+LOG_LEVEL=INFO
+API_TIMEOUT=30
+SESSION_SECRET=your_secret_key_here
+
+# ===== 公告/活動Banner =====
+NOTICE=歡迎使用智慧瓦斯AI管理系統！如有疑問請聯繫客服。
+
+# ===== 服務配置 =====
+HOST=0.0.0.0
+PORT=8600
+DEBUG=true
+
+# ===== 安全配置 =====
+CORS_ORIGINS=*
+RATE_LIMIT=100
+
+# ===== 前端配置 =====
+REACT_APP_API_URL=http://localhost:8600/ai_ask
+REACT_APP_HEALTH_URL=http://localhost:8600/health
+REACT_APP_QUOTA_URL=http://localhost:8600/quota
+REACT_APP_MODULES_URL=http://localhost:8600/modules
+REACT_APP_NOTICE_URL=http://localhost:8600/notice
+REACT_APP_CACHE_STATUS_URL=http://localhost:8600/cache/status
+REACT_APP_CACHE_CLEAR_URL=http://localhost:8600/cache/clear
+REACT_APP_HISTORY_URL=http://localhost:8600/history
+REACT_APP_LOGIN_URL=http://localhost:8600/login
+REACT_APP_LOGOUT_URL=http://localhost:8600/logout
+
+# ===== 生產環境配置 =====
+# 生產環境請修改以下設定
+# HOST=0.0.0.0
+# PORT=443
+# DEBUG=false
+# SESSION_SECRET=your_very_secure_secret_key
+# CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+
+# =============================================================================
+# API 設定
+# =============================================================================
+API_TOKEN=demo_token_here
+
+# =============================================================================
+# AI 模型設定
+# =============================================================================
+# OpenAI API (GPT-4, GPT-3.5-turbo)
+OPENAI_MODEL=gpt-4
+
+# Anthropic API (Claude)
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+ANTHROPIC_MODEL=claude-3-sonnet-20240229
+
+# DeepSeek API
+DEEPSEEK_MODEL=deepseek-chat
+
+# =============================================================================
+# 資料庫設定
+# =============================================================================
+# PostgreSQL
+DATABASE_URL=postgresql://username:password@localhost:5432/gas_db
+
+# MySQL (替代選項)
+# DATABASE_URL=mysql://username:password@localhost:3306/gas_db
+
+# SQLite (開發環境)
+# DATABASE_URL=sqlite:///./gas_ai_system.db
+
+# =============================================================================
+# Redis 設定 (快取和佇列)
+# =============================================================================
+REDIS_URL=redis://localhost:6379
+REDIS_DB=0
+REDIS_PASSWORD=
+
+# =============================================================================
+# 日誌設定
+# =============================================================================
+LOG_FILE=logs/gas_ai_system.log
+LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+
+# =============================================================================
+# 外部 API 設定
+# =============================================================================
+# 中油 API (瓦斯價格)
+CPC_API_URL=https://api.cpc.com.tw
+CPC_API_KEY=your_cpc_api_key_here
+
+# 政府資料開放平台
+GOV_API_URL=https://data.gov.tw
+GOV_API_KEY=your_gov_api_key_here
+
+# =============================================================================
+# 安全設定
+# =============================================================================
+# JWT 密鑰
+JWT_SECRET_KEY=your_jwt_secret_key_here
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_HOURS=24
+
+# 加密密鑰
+ENCRYPTION_KEY=your_encryption_key_here
+
+# =============================================================================
+# 效能設定
+# =============================================================================
+# AI 查詢快取時間 (秒)
+AI_CACHE_TTL=3600
+
+# 最大並發查詢數
+MAX_CONCURRENT_QUERIES=10
+
+# 查詢超時時間 (秒)
+QUERY_TIMEOUT=30
+
+# =============================================================================
+# 監控設定
+# =============================================================================
+# Prometheus 指標
+ENABLE_METRICS=true
+METRICS_PORT=9090
+
+# 健康檢查
+HEALTH_CHECK_INTERVAL=60
+
+# =============================================================================
+# 開發設定
+# =============================================================================
+# 開發模式
+AUTO_RELOAD=true
+
+# 測試模式
+TESTING=false
+
+# =============================================================================
+# 通知設定
+# =============================================================================
+# 電子郵件通知
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your_email@gmail.com
+SMTP_PASSWORD=your_email_password_here
+
+# 簡訊通知 (Twilio)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
+
+# =============================================================================
+# 備份設定
+# =============================================================================
+# 自動備份
+AUTO_BACKUP=true
+BACKUP_INTERVAL=86400  # 24小時
+BACKUP_PATH=./backups
+
+# =============================================================================
+# 自定義設定
+# =============================================================================
+# 瓦斯行特定設定
+COMPANY_NAME=智慧瓦斯行
+COMPANY_ADDRESS=台北市某某區某某路123號
+COMPANY_PHONE=02-1234-5678
+
+# 業務設定
+DEFAULT_CREDIT_LIMIT=10000
+DEFAULT_PAYMENT_TERMS=月結30天
+CYLINDER_DEPOSIT=1000
+
+# 注意事項：
+# 1. 請將此文件複製為 .env
+# 2. 填入實際的 API 金鑰和設定值
+# 3. 不要將 .env 文件提交到版本控制系統
+# 4. 生產環境中請使用強密碼和安全的設定 

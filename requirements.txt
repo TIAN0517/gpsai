@@ -1,0 +1,22 @@
+# 智慧瓦斯 AI 管理系統依賴包 - Gemini 版本
+
+# Web 框架
+flask==3.0.0
+flask-cors==4.0.0
+
+# AI 和機器學習
+google-generativeai==0.3.2
+requests==2.31.0
+
+# 工具庫
+python-dotenv==1.0.0
+
+# 日誌和監控
+loguru==0.7.2
+
+# 測試
+pytest==7.4.3
+
+# 開發工具
+black==23.11.0
+flake8==6.1.0 
