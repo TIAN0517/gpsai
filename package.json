@@ -1,5 +1,11 @@
 {
-  "dependencies": {
-    "react-scripts": "^5.0.1"
+  "name": "gasai-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "concurrently \"python app.py\" \"cd gas-ai-frontend && npm start\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
   }
 }

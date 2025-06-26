@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, request, jsonify, session, render_template_string, redirect, url_for
 from config import *
+import random
 
 
 # ========== HTML 模板定義 ==========
@@ -1477,6 +1478,65 @@ def api_login_status():
             'logged_in': False,
             'timestamp': datetime.now().isoformat()
         })
+
+# ========== 抽獎 API ==========
+@app.route('/api/lottery', methods=['POST'])
+def api_lottery():
+    """
+    轉轉樂抽獎 API，每日每用戶僅能抽一次。
+    回傳：{"success": bool, "prize": str, "msg": str, "error": str, "timestamp": ...}
+    """
+    try:
+        user_id = session.get('user', {}).get('username', None) or request.remote_addr
+        today = datetime.now().strftime('%Y-%m-%d')
+        if 'lottery' not in session:
+            session['lottery'] = {}
+        user_lottery = session['lottery']
+        if user_lottery.get(user_id) == today:
+            return jsonify({
+                'success': False,
+                'prize': None,
+                'msg': '您今天已經抽過囉，歡迎明天再來！',
+                'error': '',
+                'timestamp': datetime.now().isoformat(),
+                'brand': '九九瓦斯行',
+                'blessing': '感謝您支持九九瓦斯行，祝您用氣平安順心！'
+            })
+        # 加權抽獎獎項與機率
+        lottery_prizes = [
+            ("100元折價券", 1),
+            ("免費瓦斯安檢一次", 2),
+            ("會員積分加倍", 5),
+            ("瓦斯器具9折券", 5),
+            ("50元折價券", 4),
+            ("專屬客服諮詢券", 3),
+            ("恭喜中獎！下次再接再厲", 80)
+        ]
+        population = [p[0] for p in lottery_prizes]
+        weights = [p[1] for p in lottery_prizes]
+        prize = random.choices(population, weights=weights, k=1)[0]
+        user_lottery[user_id] = today
+        session['lottery'] = user_lottery
+        session.modified = True
+        return jsonify({
+            'success': True,
+            'prize': prize,
+            'msg': f'恭喜獲得：{prize}',
+            'error': '',
+            'timestamp': datetime.now().isoformat(),
+            'brand': '九九瓦斯行',
+            'blessing': '感謝您支持九九瓦斯行，祝您用氣平安順心！'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'prize': None,
+            'msg': '抽獎發生錯誤，請稍後再試',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat(),
+            'brand': '九九瓦斯行',
+            'blessing': '感謝您支持九九瓦斯行，祝您用氣平安順心！'
+        }), 500
 
 # ========== 主程式入口 ==========
 if __name__ == '__main__':

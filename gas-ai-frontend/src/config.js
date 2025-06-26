@@ -9,6 +9,7 @@ export const CACHE_CLEAR_URL = process.env.REACT_APP_CACHE_CLEAR_URL || "/cache/
 export const HISTORY_URL = process.env.REACT_APP_HISTORY_URL || "/history";
 export const LOGIN_URL = process.env.REACT_APP_LOGIN_URL || "/login";
 export const LOGOUT_URL = process.env.REACT_APP_LOGOUT_URL || "/logout";
+export const LOTTERY_URL = process.env.REACT_APP_LOTTERY_URL || "/api/lottery";
 
 // PWA 設定
 export const PWA_CONFIG = {

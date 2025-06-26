@@ -1,9 +1,29 @@
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" rx="16" fill="#1677ff"/>
-  <rect x="20" y="18" width="24" height="32" rx="8" fill="none" stroke="#fff" stroke-width="4"/>
-  <rect x="26" y="12" width="12" height="8" rx="3" fill="none" stroke="#fff" stroke-width="3"/>
-  <line x1="32" y1="20" x2="32" y2="46" stroke="#fff" stroke-width="2.5"/>
-  <circle cx="32" cy="40" r="4" fill="#fff"/>
-  <path d="M32 10 C34 13, 30 15, 32 18 C34 15, 30 13, 32 10 Z" fill="#fff"/>
-  <text x="32" y="54" text-anchor="middle" font-family="Orbitron, Noto Sans TC, 微軟正黑體, sans-serif" font-size="11" font-weight="bold" fill="#fff">Jy</text>
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffbe6" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#1677ff" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#ff9800" stop-opacity="0.8"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#1677ff" flood-opacity="0.7"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ff9800" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#glow)"/>
+  <g filter="url(#shadow)">
+    <!-- 瓦斯桶主體 -->
+    <rect x="20" y="18" width="24" height="32" rx="8" fill="#fff" fill-opacity="0.13" stroke="#fff" stroke-width="3.5"/>
+    <!-- 桶身上蓋 -->
+    <rect x="26" y="12" width="12" height="8" rx="3" fill="#fff" fill-opacity="0.18" stroke="#fff" stroke-width="2.5"/>
+    <!-- 桶身中線 -->
+    <line x1="32" y1="20" x2="32" y2="46" stroke="#fff" stroke-width="2.2"/>
+    <!-- 桶身圓點 -->
+    <circle cx="32" cy="40" r="4" fill="#fff"/>
+    <!-- 火焰 -->
+    <path d="M32 16 C34 20, 29 22, 32 28 C35 22, 30 20, 32 16 Z" fill="#ff9800" stroke="#fff" stroke-width="1.2"/>
+    <path d="M32 20 C33 22, 31 23, 32 26 C33 23, 31 22, 32 20 Z" fill="#1677ff" stroke="#fff" stroke-width="0.7"/>
+  </g>
+  <!-- Jy 品牌字樣 -->
+  <text x="32" y="56" text-anchor="middle" font-family="Orbitron, Noto Sans TC, 微軟正黑體, sans-serif" font-size="12" font-weight="bold" fill="#fff" filter="url(#shadow)">Jy</text>
 </svg> 
