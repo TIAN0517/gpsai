@@ -2,36 +2,14 @@
 # 複製此檔案為 .env 並填入實際值
 
 # ===== 企業品牌設定 =====
-BRAND_NAME=智慧瓦斯AI管理系統
+BRAND_NAME=九九瓦斯行
 BRAND_COLOR_PRIMARY=#2676ff
 BRAND_COLOR_SECONDARY=#ff9800
-DEVELOPER=Jy技術團隊
+DEVELOPER=九九瓦斯行技術團隊
 
-# ===== AI API 金鑰池管理 =====
-# Gemini API (多KEY用逗號分隔)
-GEMINI_API_KEYS=AIzaSyD7bIKgCLX4A6bn8uIoNQQPon1PRCXYMA8
-
-# OpenAI API Keys (多KEY輪流備援)
-OPENAI_API_KEY_1=
-OPENAI_API_KEY_2=
-OPENAI_API_KEY_3=
-OPENAI_API_KEY_4=
-OPENAI_API_KEY_5=
-
-# DeepSeek API Keys (多KEY輪流備援)
-DEEPSEEK_API_KEY_1=
-DEEPSEEK_API_KEY_2=
-DEEPSEEK_API_KEY_3=
-DEEPSEEK_API_KEY_4=
-DEEPSEEK_API_KEY_5=
-
-# API 端點配置
-GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent
-OPENAI_API_URL=https://api.openai.com/v1/chat/completions
-DEEPSEEK_API_URL=http://localhost:11434/api/generate
-
-# ===== 本地Ollama配置 =====
-OLLAMA_URL=http://localhost:11434
+# ===== OLLAMA 模型設定 =====
+OLLAMA_URL=https://333d-49-158-216-180.ngrok-free.app
+OLLAMA_MODELS=openchat:7b,llama3:latest,deepseek-r1:8b
 
 # ===== 快取配置 =====
 CACHE_ENABLED=true
@@ -55,7 +33,7 @@ API_TIMEOUT=30
 SESSION_SECRET=your_secret_key_here
 
 # ===== 公告/活動Banner =====
-NOTICE=歡迎使用智慧瓦斯AI管理系統！如有疑問請聯繫客服。
+NOTICE=歡迎使用九九瓦斯行AI管理系統！如有疑問請聯繫客服。
 
 # ===== 服務配置 =====
 HOST=0.0.0.0

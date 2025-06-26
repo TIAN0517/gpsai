@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, request, jsonify, session, render_template_string, redirect, url_for
 from config import *
-from config import GEMINI_API_KEY, GEMINI_API_URL, SYSTEM_PROMPTS, KEYWORDS, SESSION_SECRET
+
 
 # ========== HTML 模板定義 ==========
 
@@ -790,7 +790,7 @@ API_DOC_HTML = """
     "apis": {
         "Gemini": {
             "status": "healthy",
-            "display_name": "Google Gemini 1.5 Pro"
+            "display_name": "Google 董娘的特助"
         }
     },
     "stats": {
@@ -921,67 +921,23 @@ def login_required(role=None):
 
 # ========== API 分流與備援機制 ==========
 def get_available_apis():
-    """獲取可用的 API 列表，按優先級排序（本地Ollama優先）"""
+    """獲取可用的 API 列表，只允許三個ollama模型，且API URL為ngrok外部API"""
     apis = []
-    
-    # 檢查本地Ollama（最高優先級）
-    if check_ollama_available():
-        ollama_models = get_available_ollama_models()
-        for model in ollama_models:
-            apis.append({
-                'name': 'Ollama',
-                'display_name': f'Ollama {model}',
-                'url': f"{OLLAMA_URL}/api/generate",
-                'model': model,
-                'priority': 0,  # 最高優先級
-                'status': 'unknown',
-                'type': 'local'
-            })
-    
-    # Gemini API（多KEY輪流）
-    valid_gemini_keys = [key for key in GEMINI_API_KEYS if key.strip()]
-    if valid_gemini_keys:
-        for key in valid_gemini_keys:
-            apis.append({
-                'name': 'Gemini',
-                'display_name': 'Google Gemini 1.5-pro',
-                'url': f'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={key}',
-                'keys': [key],
-                'priority': 1,
-                'status': 'unknown',
-                'type': 'cloud'
-            })
-    
-    # OpenAI API（多KEY輪流）
-    valid_openai_keys = [key for key in OPENAI_API_KEYS if key.strip()]
-    if valid_openai_keys:
+    ollama_models = ["openchat:7b", "llama3:latest", "deepseek-r1:8b"]
+    for model in ollama_models:
         apis.append({
-            'name': 'OpenAI',
-            'display_name': 'OpenAI GPT-3.5',
-            'url': OPENAI_API_URL,
-            'keys': valid_openai_keys,
-            'priority': 2,
+            'name': 'Ollama',
+            'display_name': f'Ollama {model}',
+            'url': 'https://333d-49-158-216-180.ngrok-free.app/api/generate',
+            'model': model,
+            'priority': 0,
             'status': 'unknown',
-            'type': 'cloud'
+            'type': 'local'
         })
-    
-    # DeepSeek API（多KEY輪流）
-    valid_deepseek_keys = [key for key in DEEPSEEK_API_KEYS if key.strip()]
-    if valid_deepseek_keys:
-        apis.append({
-            'name': 'DeepSeek',
-            'display_name': 'DeepSeek API',
-            'url': DEEPSEEK_API_URL,
-            'keys': valid_deepseek_keys,
-            'priority': 3,
-            'status': 'unknown',
-            'type': 'cloud'
-        })
-    
-    return sorted(apis, key=lambda x: x['priority'])
+    return apis
 
 def check_api_health(api):
-    """檢查 API 健康狀態"""
+    """檢查 API 健康狀態（僅Ollama）"""
     try:
         if api['name'] == 'Ollama':
             response = requests.post(
@@ -994,76 +950,26 @@ def check_api_health(api):
                 timeout=5
             )
             return response.status_code == 200
-        elif api['name'] == 'Gemini':
-            api_key = get_next_api_key('Gemini')
-            if not api_key:
-                return False
-            response = requests.post(
-                api['url'],
-                headers={'Content-Type': 'application/json'},
-                json={
-                    'contents': [{'parts': [{'text': 'test'}]}],
-                    'generationConfig': {'maxOutputTokens': 10}
-                },
-                params={'key': api_key},
-                timeout=5
-            )
-            return response.status_code == 200
-        elif api['name'] == 'OpenAI':
-            api_key = get_next_api_key('OpenAI')
-            if not api_key:
-                return False
-            response = requests.post(
-                api['url'],
-                headers={
-                    'Authorization': f'Bearer {api_key}',
-                    'Content-Type': 'application/json'
-                },
-                json={
-                    'model': 'gpt-3.5-turbo',
-                    'messages': [{'role': 'user', 'content': 'test'}],
-                    'max_tokens': 10
-                },
-                timeout=5
-            )
-            return response.status_code == 200
-        elif api['name'] == 'DeepSeek':
-            api_key = get_next_api_key('DeepSeek')
-            if not api_key:
-                return False
-            response = requests.post(
-                api['url'],
-                json={
-                    'model': 'deepseek-r1:8b',
-                    'prompt': 'test',
-                    'stream': False
-                },
-                timeout=5
-            )
-            return response.status_code == 200
+        else:
+            return False
     except Exception as e:
         logger.error(f"API 健康檢查失敗 {api['name']}: {str(e)}")
         return False
 
 def call_ai_api(api, query, module):
-    """調用指定的 AI API"""
+    """調用指定的 AI API（僅Ollama）"""
     try:
         if api['name'] == 'Ollama':
             return call_ollama_api(api, query, module)
-        elif api['name'] == 'Gemini':
-            return call_gemini_api(api, query, module)
-        elif api['name'] == 'OpenAI':
-            return call_openai_api(api, query, module)
-        elif api['name'] == 'DeepSeek':
-            return call_deepseek_api(api, query, module)
+        else:
+            raise Exception("只允許Ollama API")
     except Exception as e:
         logger.error(f"API 調用失敗 {api['name']}: {str(e)}")
         raise
 
 def call_ollama_api(api, query, module):
-    """調用本地 Ollama API"""
+    """調用 Ollama API"""
     prompt = f"{SYSTEM_PROMPTS.get(module, SYSTEM_PROMPTS['DEFAULT'])}\n\n用戶查詢: {query}"
-    
     response = requests.post(
         api['url'],
         json={
@@ -1073,7 +979,6 @@ def call_ollama_api(api, query, module):
         },
         timeout=30
     )
-    
     if response.status_code == 200:
         result = response.json()
         if 'response' in result:
@@ -1082,110 +987,6 @@ def call_ollama_api(api, query, module):
             raise Exception("Ollama API 回應格式錯誤")
     else:
         raise Exception(f"Ollama API 錯誤: {response.status_code} - {response.text}")
-
-def call_gemini_api(query, module_prompt):
-    prompt = f"請用繁體中文詳細回答：{module_prompt}\n\n用戶查詢: {query}"
-    url = f"{GEMINI_API_URL}?key={GEMINI_API_KEY}"
-    headers = {'Content-Type': 'application/json'}
-    data = {
-        "contents": [
-            {"parts": [{"text": prompt}]}
-        ]
-    }
-    try:
-        resp = requests.post(url, headers=headers, json=data, timeout=30)
-        if resp.status_code == 200:
-            result = resp.json()
-            try:
-                answer = result['candidates'][0]['content']['parts'][0]['text']
-            except Exception:
-                answer = str(result)
-            return answer
-        elif resp.status_code == 429:
-            return "API 金鑰流量已用盡，請聯絡管理員更換金鑰。"
-        else:
-            return f"AI服務錯誤({resp.status_code})，請稍後再試。\n{resp.text}"
-    except Exception as e:
-        return f"AI服務異常：{str(e)}"
-
-def call_openai_api(api, query, module):
-    """調用 OpenAI API（多KEY輪流）"""
-    prompt = f"{SYSTEM_PROMPTS.get(module, SYSTEM_PROMPTS['DEFAULT'])}\n\n用戶查詢: {query}"
-    
-    # 嘗試所有可用的KEY
-    for _ in range(len(api['keys'])):
-        api_key = get_next_api_key('OpenAI')
-        if not api_key:
-            continue
-            
-        try:
-            response = requests.post(
-                api['url'],
-                headers={
-                    'Authorization': f'Bearer {api_key}',
-                    'Content-Type': 'application/json'
-                },
-                json={
-                    'model': 'gpt-3.5-turbo',
-                    'messages': [{'role': 'user', 'content': prompt}],
-                    'max_tokens': 1000,
-                    'temperature': 0.7
-                },
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                if 'choices' in result and result['choices']:
-                    return result['choices'][0]['message']['content']
-                else:
-                    raise Exception("OpenAI API 回應格式錯誤")
-            elif response.status_code == 429:  # 配額用盡
-                continue
-            else:
-                raise Exception(f"OpenAI API 錯誤: {response.status_code} - {response.text}")
-        except Exception as e:
-            logger.warning(f"OpenAI API KEY {api_key[:10]}... 失敗: {str(e)}")
-            continue
-    
-    raise Exception("所有 OpenAI API KEY 都無法使用")
-
-def call_deepseek_api(api, query, module):
-    """調用 DeepSeek API（多KEY輪流）"""
-    prompt = f"{SYSTEM_PROMPTS.get(module, SYSTEM_PROMPTS['DEFAULT'])}\n\n用戶查詢: {query}"
-    
-    # 嘗試所有可用的KEY
-    for _ in range(len(api['keys'])):
-        api_key = get_next_api_key('DeepSeek')
-        if not api_key:
-            continue
-            
-        try:
-            response = requests.post(
-                api['url'],
-                json={
-                    'model': 'deepseek-r1:8b',
-                    'prompt': prompt,
-                    'stream': False
-                },
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                if 'response' in result:
-                    return result['response']
-                else:
-                    raise Exception("DeepSeek API 回應格式錯誤")
-            elif response.status_code == 429:  # 配額用盡
-                continue
-            else:
-                raise Exception(f"DeepSeek API 錯誤: {response.status_code} - {response.text}")
-        except Exception as e:
-            logger.warning(f"DeepSeek API KEY {api_key[:10]}... 失敗: {str(e)}")
-            continue
-    
-    raise Exception("所有 DeepSeek API KEY 都無法使用")
 
 def decode_unicode_response(text):
     """自動解碼 Unicode 轉中文"""
@@ -1247,50 +1048,6 @@ def increment_quota():
     # 配額功能已停用，僅使用單一 Gemini API
     pass
 
-# ========== API KEY 輪流管理 ==========
-def get_next_api_key(api_type):
-    """獲取下一個可用的API KEY"""
-    if api_type == 'Gemini':
-        keys = GEMINI_API_KEYS
-    elif api_type == 'OpenAI':
-        keys = OPENAI_API_KEYS
-    elif api_type == 'DeepSeek':
-        keys = DEEPSEEK_API_KEYS
-    else:
-        return None
-    
-    # 過濾空KEY
-    valid_keys = [key for key in keys if key.strip()]
-    if not valid_keys:
-        return None
-    
-    # 輪流選擇
-    current_index = api_key_indexes[api_type]
-    selected_key = valid_keys[current_index % len(valid_keys)]
-    api_key_indexes[api_type] = (current_index + 1) % len(valid_keys)
-    
-    return selected_key
-
-# ========== 本地Ollama檢查 ==========
-def check_ollama_available():
-    """檢查本地Ollama是否可用"""
-    try:
-        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=3)
-        return response.status_code == 200
-    except:
-        return False
-
-def get_available_ollama_models():
-    """獲取可用的Ollama模型"""
-    try:
-        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            return [model['name'] for model in data.get('models', [])]
-        return []
-    except:
-        return []
-
 # ========== 路由定義 ==========
 
 @app.route('/')
@@ -1327,31 +1084,15 @@ def legacy_logout():
 @app.route('/health')
 def health_check():
     """健康檢查 API - 企業級監控"""
-    try:
-        return jsonify({
-            'status': 'healthy',
-            'timestamp': datetime.now().isoformat(),
-            'ai_model': 'gemini-1.5-pro-002',
-            'cache': {
-                'enabled': CACHE_ENABLED,
-                'size': len(cache),
-                'max_size': CACHE_MAX_SIZE,
-                'ttl': CACHE_TTL
-            },
-            'modules': MODULES,
-            'system_info': {
-                'name': SYSTEM_NAME,
-                'version': SYSTEM_VERSION,
-                'description': SYSTEM_DESCRIPTION
-            }
-        })
-    except Exception as e:
-        logger.error(f"健康檢查失敗: {str(e)}")
-        return jsonify({
-            'status': 'unhealthy',
-            'error': str(e),
-            'timestamp': datetime.now().isoformat()
-        }), 500
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'ai_model': 'ollama-ngrok',
+        'cache': {
+            'size': len(cache),
+            'enabled': CACHE_ENABLED
+        }
+    })
 
 @app.route('/modules')
 def get_modules():
@@ -1379,6 +1120,7 @@ def ai_ask():
         query = data['query'].strip()
         if not query:
             return jsonify({'error': '查詢內容不能為空', 'msg': 'Query cannot be empty'}), 400
+        # 模組判斷
         module = 'FAQ'
         for mod, keywords in KEYWORDS.items():
             if any(keyword in query for keyword in keywords):
@@ -1386,18 +1128,20 @@ def ai_ask():
                 break
         module_prompt = SYSTEM_PROMPTS.get(module, SYSTEM_PROMPTS['DEFAULT'])
         prompt = f"請用繁體中文詳細回答：{module_prompt}\n\n用戶查詢: {query}"
-        url = f"{GEMINI_API_URL}?key={GEMINI_API_KEY}"
+        # 呼叫 Ollama API
+        ollama_url = "https://333d-49-158-216-180.ngrok-free.app/api/generate"
+        payload = {
+            "model": module if module in OLLAMA_MODELS else OLLAMA_MODELS[0],
+            "prompt": prompt,
+            "stream": False
+        }
         headers = {'Content-Type': 'application/json'}
-        data = {"contents": [{"parts": [{"text": prompt}]}]}
-        resp = requests.post(url, headers=headers, json=data, timeout=30)
+        resp = requests.post(ollama_url, headers=headers, json=payload, timeout=30)
         if resp.status_code == 200:
             result = resp.json()
-            try:
-                response_text = result['candidates'][0]['content']['parts'][0]['text']
-            except Exception:
-                response_text = str(result)
+            response_text = result.get('response', '')
         elif resp.status_code == 429:
-            return jsonify({'error': 'API 金鑰流量已用盡，請聯絡管理員更換金鑰。'}), 429
+            return jsonify({'error': 'Ollama API 流量已用盡，請聯絡管理員。'}), 429
         else:
             return jsonify({'error': f'AI服務錯誤({resp.status_code})', 'msg': resp.text}), 500
         response_time = time.time() - start_time
@@ -1408,8 +1152,7 @@ def ai_ask():
             'query': query,
             'response': response_text,
             'module': module,
-            'ai_model': 'gemini-1.5-pro-002',
-            'api_key': GEMINI_API_KEY if is_admin else None,
+            'ai_model': OLLAMA_MODEL_DISPLAY_NAMES.get(payload['model'], payload['model']),
             'response_time': round(response_time, 2),
             'timestamp': datetime.now().isoformat(),
         })
@@ -1531,7 +1274,7 @@ def ai_chat():
         return jsonify({
             'success': False,
             'msg': '請輸入查詢內容',
-            'ai_model': 'gemini-1.5-pro-002'
+            'ai_model': 'ollama'
         }), 400
     module_prompt = SYSTEM_PROMPTS.get('DEFAULT')
     prompt = f"請用繁體中文詳細回答：{module_prompt}\n\n用戶查詢: {query}"
@@ -1553,7 +1296,7 @@ def ai_chat():
         'success': True,
         'query': query,
         'response': answer,
-        'ai_model': 'gemini-1.5-pro-002'
+        'ai_model': 'ollama'
     }
     if 'user' in session and session['user'].get('role') == 'admin':
         resp_json['api_key'] = GEMINI_API_KEY
@@ -1567,7 +1310,7 @@ def ai_faq():
         return jsonify({
             'success': False,
             'msg': '請輸入查詢內容',
-            'ai_model': 'gemini-1.5-pro-002'
+            'ai_model': 'ollama'
         }), 400
     module_prompt = SYSTEM_PROMPTS.get('faq', SYSTEM_PROMPTS['DEFAULT'])
     prompt = f"請用繁體中文詳細回答：{module_prompt}\n\n用戶查詢: {query}"
@@ -1589,7 +1332,7 @@ def ai_faq():
         'success': True,
         'query': query,
         'response': answer,
-        'ai_model': 'gemini-1.5-pro-002'
+        'ai_model': 'ollama'
     }
     if 'user' in session and session['user'].get('role') == 'admin':
         resp_json['api_key'] = GEMINI_API_KEY
@@ -1603,7 +1346,7 @@ def ai_analyze():
         return jsonify({
             'success': False,
             'msg': '請輸入查詢內容',
-            'ai_model': 'gemini-1.5-pro-002'
+            'ai_model': 'ollama'
         }), 400
     module_prompt = SYSTEM_PROMPTS.get('cost', SYSTEM_PROMPTS['DEFAULT'])
     prompt = f"請用繁體中文詳細回答：{module_prompt}\n\n用戶查詢: {query}"
@@ -1625,7 +1368,7 @@ def ai_analyze():
         'success': True,
         'query': query,
         'response': answer,
-        'ai_model': 'gemini-1.5-pro-002'
+        'ai_model': 'ollama'
     }
     if 'user' in session and session['user'].get('role') == 'admin':
         resp_json['api_key'] = GEMINI_API_KEY
@@ -1677,6 +1420,64 @@ def api_logout():
     session.clear()
     return jsonify({'success': True, 'code': 0, 'data': {'msg': '已登出'}, 'error': None})
 
+# ========== 健康檢查 API ==========
+@app.route('/api/health', methods=['GET'])
+def api_health():
+    # 模型健康檢查（簡單測試每個模型名稱是否在可用清單）
+    model_status = {name: '可用' for name in OLLAMA_MODELS}
+    # 可擴充為實際 ping Ollama API
+    cache_status = {
+        'enabled': globals().get('CACHE_ENABLED', False),
+        'size': len(globals().get('cache', {})),
+        'max_size': globals().get('CACHE_MAX_SIZE', 0),
+        'ttl': globals().get('CACHE_TTL', 0)
+    }
+    return jsonify({
+        'system': '智慧瓦斯AI管理系統',
+        'status': 'healthy',
+        'models': {k: {'display': OLLAMA_MODEL_DISPLAY_NAMES.get(k, k), 'status': v} for k, v in model_status.items()},
+        'cache': cache_status,
+        'timestamp': datetime.now().isoformat()
+    })
+
+# ========== 配額查詢 API ==========
+@app.route('/api/quota', methods=['GET'])
+def api_quota():
+    # 假設配額資訊來自 config 或全域變數
+    quota_info = {
+        'enabled': globals().get('QUOTA_ENABLED', False),
+        'hourly': globals().get('QUOTA_HOURLY', 100),
+        'daily': globals().get('QUOTA_DAILY', 1000),
+        'monthly': globals().get('QUOTA_MONTHLY', 10000),
+        'used_hourly': globals().get('quota_used_hourly', 0),
+        'used_daily': globals().get('quota_used_daily', 0),
+        'used_monthly': globals().get('quota_used_monthly', 0),
+        'cooldown': globals().get('QUOTA_COOLDOWN', 60),
+        'timestamp': datetime.now().isoformat()
+    }
+    quota_info['remaining_hourly'] = quota_info['hourly'] - quota_info['used_hourly']
+    quota_info['remaining_daily'] = quota_info['daily'] - quota_info['used_daily']
+    quota_info['remaining_monthly'] = quota_info['monthly'] - quota_info['used_monthly']
+    return jsonify(quota_info)
+
+# ========== 管理登入狀態查詢 API ==========
+@app.route('/api/login_status', methods=['GET'])
+def api_login_status():
+    user = session.get('user')
+    if user:
+        return jsonify({
+            'logged_in': True,
+            'username': user.get('username'),
+            'role': user.get('role'),
+            'login_time': session.get('last_active'),
+            'timestamp': datetime.now().isoformat()
+        })
+    else:
+        return jsonify({
+            'logged_in': False,
+            'timestamp': datetime.now().isoformat()
+        })
+
 # ========== 主程式入口 ==========
 if __name__ == '__main__':
     print("=" * 60)
@@ -1684,7 +1485,7 @@ if __name__ == '__main__':
     print("=" * 60)
     print(f"📡 服務地址: http://localhost:{PORT}")
     print(f"🎯 API 端點: /ai_ask (查詢), /health (健康檢查)")
-    print(f"🤖 AI 模型: Gemini 1.5 Pro")
+    print(f"🤖 AI 模型: 董娘的特助")
     print("=" * 60)
     print("💡 使用方式:")
     print(f"   1. 瀏覽器開啟 http://localhost:{PORT}")

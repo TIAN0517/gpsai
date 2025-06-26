@@ -457,6 +457,28 @@ function App() {
               )}
             />
           </div>
+          <div className="modules" style={{ marginTop: 32 }}>
+            {/* 新增卡片：瓦斯器具專區 */}
+            <div className="module-card" style={{ background: 'linear-gradient(135deg, #ff9800 0%, #ff5e62 100%)' }}>
+              <h3>🔥 瓦斯器具專區</h3>
+              <p>
+                熱水器、瓦斯爐、爐具選購<br/>
+                產品規格、安裝建議<br/>
+                維修保養、節能安全<br/>
+                周邊配件/偵測器介紹
+              </p>
+            </div>
+            {/* 新增卡片：專屬優惠券 */}
+            <div className="module-card" style={{ background: 'linear-gradient(135deg, #00c3ff 0%, #ffff1c 100%)' }}>
+              <h3>🎟️ 專屬優惠券</h3>
+              <p>
+                最新折扣券、會員專屬優惠<br/>
+                兌換流程、使用說明<br/>
+                限時活動、積分回饋<br/>
+                客戶專屬福利推播
+              </p>
+            </div>
+          </div>
         </Content>
       </Layout>
       

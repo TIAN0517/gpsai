@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class ModelConfig:
     """模型配置"""
     name: str
-    url: str = "http://localhost:11434/api/chat"
+    url: str = "https://333d-49-158-216-180.ngrok-free.app/api/chat"
     timeout: int = 30
     max_retries: int = 3
     priority: int = 1
@@ -59,7 +59,7 @@ class ModelHealthChecker:
         for model_name in PROMPT_MODEL_MAP.values():
             try:
                 response = requests.post(
-                    "http://localhost:11434/api/chat",
+                    "https://333d-49-158-216-180.ngrok-free.app/api/chat",
                     json={
                         "model": model_name,
                         "messages": [{"role": "user", "content": "ping"}]
@@ -169,25 +169,20 @@ class PromptRouter:
     
     def get_best_model(self, module: str) -> str:
         """獲取最佳模型"""
-        # 模型配置（可根據實際需求調整）
+        # 僅允許三個模型
         model_configs = {
-            "帳務": ["deepseek-r1:8b", "qwen3:32b", "llama3:8b-instruct-q4_0"],
-            "成本": ["qwen3:32b", "deepseek-r1:8b", "llama3:8b-instruct-q4_0"],
-            "派工": ["llama3:8b-instruct-q4_0", "deepseek-r1:8b", "qwen3:32b"],
-            "維修": ["qwen3:32b", "deepseek-r1:8b", "llama3:8b-instruct-q4_0"],
-            "FAQ": ["deepseek-r1:8b", "qwen3:32b", "llama3:8b-instruct-q4_0"],
-            "合約": ["deepseek-r1:8b", "qwen3:32b", "llama3:8b-instruct-q4_0"]
+            "帳務": ["openchat:7b", "llama3:latest", "deepseek-r1:8b"],
+            "成本": ["openchat:7b", "llama3:latest", "deepseek-r1:8b"],
+            "派工": ["openchat:7b", "llama3:latest", "deepseek-r1:8b"],
+            "維修": ["openchat:7b", "llama3:latest", "deepseek-r1:8b"],
+            "FAQ": ["openchat:7b", "llama3:latest", "deepseek-r1:8b"],
+            "合約": ["openchat:7b", "llama3:latest", "deepseek-r1:8b"]
         }
-        
-        models = model_configs.get(module, ["llama3:8b-instruct-q4_0"])
-        
-        # 選擇第一個健康的模型
+        models = model_configs.get(module, ["openchat:7b"])
         for model in models:
             if self.health_checker.is_model_healthy(model):
                 return model
-        
-        # 如果所有模型都不健康，返回預設模型
-        return "llama3:8b-instruct-q4_0"
+        return "openchat:7b"
     
     def build_prompt(self, user_input: str, module: str) -> Dict[str, Any]:
         """構建完整的提示詞"""
@@ -202,6 +197,7 @@ class PromptRouter:
             "FAQ": f"\n\n用戶查詢: {user_input}\n\n請提供友善的客服回應，包括：\n1. 直接答案\n2. 相關資訊\n3. 實用建議\n4. 後續服務",
             "合約": f"\n\n用戶查詢: {user_input}\n\n請提供專業的合約建議，包括：\n1. 條款分析\n2. 風險評估\n3. 優化建議\n4. 法律提醒"
         }
+
         
         context = context_prompts.get(module, context_prompts["FAQ"])
         
@@ -259,7 +255,7 @@ class PromptRouter:
             }
             
             response = requests.post(
-                "http://localhost:11434/api/chat",
+                "https://333d-49-158-216-180.ngrok-free.app/api/chat",
                 json=payload,
                 timeout=30
             )
